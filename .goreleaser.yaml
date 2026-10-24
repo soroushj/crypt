@@ -1,0 +1,22 @@
+version: 2
+
+builds:
+  - main: ./cmd/crypt
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    # The version is stamped by go build from the Git tag, as for go install.
+    flags: [-trimpath]
+    ldflags: [-s -w]
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - formats: [tar.gz]
+    files: [LICENSE, README.md]
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
