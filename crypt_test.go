@@ -20,8 +20,12 @@ import (
 var update = flag.Bool("update", false, "update golden files")
 
 const (
-	tagSize       = 16
-	encChunkSize  = crypt.ChunkSize + tagSize
+	tagSize      = 16
+	encChunkSize = crypt.ChunkSize + tagSize
+
+	// multiChunkLen is a plaintext length of 3 chunks, the last one partial,
+	// for tests that need a first, a middle, and a last chunk, such as
+	// dropping or swapping chunks, or truncating at a chunk boundary.
 	multiChunkLen = 2*crypt.ChunkSize + 100
 )
 
