@@ -37,8 +37,11 @@ func Example() {
 }
 
 func ExampleNewReader_wrongPassword() {
+	password := []byte("correct horse battery staple")
+	wrongPassword := []byte("Tr0ub4dor&3")
+
 	var encrypted bytes.Buffer
-	w, err := crypt.NewWriter(&encrypted, []byte("correct horse battery staple"), crypt.LowMemoryParams)
+	w, err := crypt.NewWriter(&encrypted, password, crypt.LowMemoryParams)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +49,7 @@ func ExampleNewReader_wrongPassword() {
 		log.Fatal(err)
 	}
 
-	r, err := crypt.NewReader(&encrypted, []byte("Tr0ub4dor&3"))
+	r, err := crypt.NewReader(&encrypted, wrongPassword)
 	if err != nil {
 		log.Fatal(err)
 	}
