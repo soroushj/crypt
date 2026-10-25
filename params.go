@@ -18,6 +18,8 @@ var (
 
 	// LowMemoryParams are the second recommended parameters of RFC 9106,
 	// Section 4, for memory-constrained environments: t=3, m=64 MiB, and p=4.
+	// They make password guessing considerably cheaper than DefaultParams, so
+	// use them only when 2 GiB of memory is not available.
 	LowMemoryParams = Params{Time: 3, Memory: 64 << 10, Threads: 4}
 )
 

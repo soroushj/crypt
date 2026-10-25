@@ -48,7 +48,7 @@ read from the terminal, so the standard input stays free for data.
 | Flag        | Description |
 | ----------- | ----------- |
 | `-d`        | Decrypt instead of encrypting. |
-| `-l`        | Encrypt with 64 MiB of memory instead of 2 GiB (see [Parameters](#parameters)). |
+| `-l`        | Encrypt with 64 MiB of memory instead of 2 GiB, which makes passwords cheaper to guess (see [Parameters](#parameters)). |
 | `-o output` | Write to `output`, which is replaced atomically, only on success. It may be the same file as `input`. |
 | `-V`        | Print the version. |
 
@@ -116,7 +116,9 @@ salt and a 256-bit tag:
 Decryption must derive the same key with the same parameters, so it needs as
 much memory as encryption did. The parameters are stored in each file, so this
 is decided when the file is encrypted: use `-l` for files that may be
-decrypted on machines with less than 2 GiB of free memory.
+decrypted on machines with less than 2 GiB of free memory. However, `-l`
+trades security for memory: it makes each password guess considerably cheaper
+for an attacker. Use it only when needed, and with a strong password.
 
 Argon2 allocates all of its memory at once, and the Go garbage collector would
 then keep that much memory resident for the rest of the run. So `crypt`

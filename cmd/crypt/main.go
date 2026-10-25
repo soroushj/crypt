@@ -17,8 +17,11 @@
 //		Encrypt with the low-memory parameters of RFC 9106, which need
 //		64 MiB of memory, instead of the default ones, which need 2 GiB.
 //		Decryption needs as much memory as encryption did, so use -l for
-//		files that may be decrypted on machines with less memory. When
-//		decrypting, the parameters are read from input, so -l is invalid.
+//		files that may be decrypted on machines with less memory. However,
+//		-l trades security for memory: it makes each password guess
+//		considerably cheaper for an attacker, so use it only when needed,
+//		and with a strong password. When decrypting, the parameters are
+//		read from input, so -l is invalid.
 //	-o output
 //		Write to output instead of the standard output. Output must be a
 //		regular file, if it exists. It is created with mode 0600, and is
@@ -101,7 +104,7 @@ func parseArgs(args []string, stderr io.Writer) (options, error) {
 		fs.PrintDefaults()
 	}
 	fs.BoolVar(&opts.decrypt, "d", false, "decrypt instead of encrypting")
-	fs.BoolVar(&opts.lowMemory, "l", false, "encrypt with 64 MiB of memory instead of 2 GiB")
+	fs.BoolVar(&opts.lowMemory, "l", false, "encrypt with 64 MiB of memory instead of 2 GiB, which makes passwords cheaper to guess; avoid unless memory is limited")
 	fs.StringVar(&opts.output, "o", "", "write to `output` instead of the standard output")
 	fs.BoolVar(&opts.version, "V", false, "print the version and exit")
 	if err := fs.Parse(args); err != nil {
