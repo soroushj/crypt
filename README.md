@@ -151,9 +151,9 @@ All integers are big-endian.
 | 15     | 16   | Salt |
 | 31     |      | Chunks: up to 64 KiB of ciphertext followed by a 16-byte tag |
 
-The 12-byte nonce of chunk *i* is *i* as an 11-byte integer, followed by `01`
-for the last chunk and `00` otherwise. Only the last chunk may be shorter than
-64 KiB, and it is empty only if the plaintext is empty.
+The 12-byte nonce of chunk *i* is *i* as an 11-byte integer, followed by a
+byte that is 1 for the last chunk and 0 otherwise. Only the last chunk may be
+shorter than 64 KiB, and it is empty only if the plaintext is empty.
 
 To let `file(1)` recognize encrypted files, add this to `~/.magic` or
 `/etc/magic`:
