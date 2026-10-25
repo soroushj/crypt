@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/soroushj/crypt"
@@ -72,7 +73,7 @@ func TestParseArgs(t *testing.T) {
 		{args: []string{"-x"}, wantErr: true},
 		{args: []string{"-o"}, wantErr: true},
 	} {
-		got, err := parseArgs(tc.args, io.Discard)
+		got, err := parseArgs(tc.args, io.Discard, io.Discard)
 		if tc.wantErr {
 			if err == nil {
 				t.Errorf("parseArgs(%q) succeeded, want error", tc.args)
@@ -83,8 +84,29 @@ func TestParseArgs(t *testing.T) {
 			t.Errorf("parseArgs(%q) = %+v, %v, want %+v, nil", tc.args, got, err, tc.want)
 		}
 	}
-	if _, err := parseArgs([]string{"-h"}, io.Discard); !errors.Is(err, flag.ErrHelp) {
+	if _, err := parseArgs([]string{"-h"}, io.Discard, io.Discard); !errors.Is(err, flag.ErrHelp) {
 		t.Errorf("parseArgs(-h) error = %v, want flag.ErrHelp", err)
+	}
+}
+
+func TestUsageOutput(t *testing.T) {
+	for _, tc := range []struct {
+		args       []string
+		wantStdout string // prefix
+		wantStderr string
+	}{
+		{args: []string{"-h"}, wantStdout: "Usage: crypt "},
+		{args: []string{"-x"}, wantStderr: "crypt: flag provided but not defined: -x\nRun 'crypt -h' for help.\n"},
+		{args: []string{"-d", "-l"}, wantStderr: "crypt: -l is invalid with -d\nRun 'crypt -h' for help.\n"},
+	} {
+		var stdout, stderr strings.Builder
+		parseArgs(tc.args, &stdout, &stderr)
+		if !strings.HasPrefix(stdout.String(), tc.wantStdout) || (tc.wantStdout == "" && stdout.Len() > 0) {
+			t.Errorf("parseArgs(%q) stdout = %q, want prefix %q", tc.args, stdout.String(), tc.wantStdout)
+		}
+		if got := stderr.String(); got != tc.wantStderr {
+			t.Errorf("parseArgs(%q) stderr = %q, want %q", tc.args, got, tc.wantStderr)
+		}
 	}
 }
 

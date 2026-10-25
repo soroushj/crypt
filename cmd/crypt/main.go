@@ -59,7 +59,26 @@ import (
 	"golang.org/x/term"
 )
 
-const usageLine = "usage: crypt [-d] [-l] [-o output] [input]"
+// The help is split around the list of flags, so that the flags are quick to
+// find, and the notes after them are there for those who read on.
+const (
+	usageHead = `Usage: crypt [-d] [-l] [-o output] [input]
+
+Encrypt input, or decrypt it with -d, using a password read from the terminal.
+
+`
+	usageNotes = `
+Input is the standard input if absent or "-", and output is the standard output
+if -o is absent. With -o, output is replaced only if crypt succeeds, so it may
+be the same file as input. Without -o, decrypted output is complete only if
+crypt exits with status 0.
+
+Decrypting needs as much memory as encrypting did: 2 GiB, or 64 MiB if
+encrypted with -l.
+
+See https://github.com/soroushj/crypt for details.
+`
+)
 
 type options struct {
 	decrypt   bool
@@ -70,7 +89,7 @@ type options struct {
 }
 
 func main() {
-	opts, err := parseArgs(os.Args[1:], os.Stderr)
+	opts, err := parseArgs(os.Args[1:], os.Stdout, os.Stderr)
 	if errors.Is(err, flag.ErrHelp) {
 		os.Exit(0)
 	} else if err != nil {
@@ -93,33 +112,35 @@ func main() {
 	}
 }
 
-// parseArgs parses the command-line arguments, and reports invalid usage to
-// stderr.
-func parseArgs(args []string, stderr io.Writer) (options, error) {
+// parseArgs parses the command-line arguments. It prints the help to stdout
+// if requested with -h, and reports invalid usage to stderr, along with how to
+// get help, rather than the whole help.
+func parseArgs(args []string, stdout, stderr io.Writer) (options, error) {
 	var opts options
 	fs := flag.NewFlagSet("crypt", flag.ContinueOnError)
-	fs.SetOutput(stderr)
-	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), usageLine)
-		fs.PrintDefaults()
-	}
+	fs.SetOutput(io.Discard) // errors and help are printed below
 	fs.BoolVar(&opts.decrypt, "d", false, "decrypt instead of encrypting")
 	fs.BoolVar(&opts.lowMemory, "l", false, "encrypt with 64 MiB of memory instead of 2 GiB, which makes passwords cheaper to guess; avoid unless memory is limited")
 	fs.StringVar(&opts.output, "o", "", "write to `output` instead of the standard output")
 	fs.BoolVar(&opts.version, "V", false, "print the version and exit")
-	if err := fs.Parse(args); err != nil {
-		return opts, err
+	err := fs.Parse(args)
+	if err == nil {
+		switch {
+		case fs.NArg() > 1:
+			err = errors.New("too many operands")
+		case opts.decrypt && opts.lowMemory:
+			err = errors.New("-l is invalid with -d")
+		}
 	}
-	var err error
 	switch {
-	case fs.NArg() > 1:
-		err = errors.New("too many operands")
-	case opts.decrypt && opts.lowMemory:
-		err = errors.New("-l is invalid with -d")
-	}
-	if err != nil {
-		fmt.Fprintln(stderr, "crypt:", err)
-		fs.Usage()
+	case errors.Is(err, flag.ErrHelp):
+		fs.SetOutput(stdout)
+		fmt.Fprint(stdout, usageHead)
+		fs.PrintDefaults()
+		fmt.Fprint(stdout, usageNotes)
+		return opts, err
+	case err != nil:
+		fmt.Fprintf(stderr, "crypt: %v\nRun 'crypt -h' for help.\n", err)
 		return opts, err
 	}
 	opts.input = fs.Arg(0)
