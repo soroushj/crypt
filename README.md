@@ -114,9 +114,9 @@ decrypted on machines with less than 2 GiB of free memory.
 
 Argon2 allocates all of its memory at once, and the Go garbage collector would
 then keep that much memory resident for the rest of the run. So `crypt`
-returns it to the operating system before processing any data. Peak memory
-usage is therefore that of key derivation plus one 64 KiB chunk: encrypting
-or decrypting a 1 GiB file with the default parameters peaks at 2.1 GB of RSS.
+returns it to the operating system before processing any data. As a result,
+regardless of file size, `crypt` uses about 2 GiB of memory with the default
+parameters, and 67 MiB with `-l`.
 
 ### Encryption
 

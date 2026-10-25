@@ -28,7 +28,7 @@
 // [NewReader] needs no parameters. The memory used for key derivation is
 // returned to the operating system before any data is processed, so the peak
 // memory usage of encryption and decryption is that of key derivation, plus a
-// chunk.
+// few MiB, regardless of the size of the data.
 //
 // # Format
 //
