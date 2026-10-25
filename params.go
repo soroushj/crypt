@@ -3,6 +3,8 @@ package crypt
 import "fmt"
 
 // Params are the Argon2id parameters used to derive a key from a password.
+// RFC 9106, Section 3.1, requires Time and Threads to be at least 1, and
+// Memory to be at least 8*Threads KiB.
 type Params struct {
 	Time    uint32 // number of passes over the memory, t
 	Memory  uint32 // memory size in KiB, m
@@ -11,20 +13,19 @@ type Params struct {
 
 var (
 	// DefaultParams are the first recommended parameters of RFC 9106,
-	// Section 4: t=1, m=2^21 KiB (2 GiB), and p=4.
-	DefaultParams = Params{Time: 1, Memory: 1 << 21, Threads: 4}
+	// Section 4: t=1, m=2 GiB, and p=4.
+	DefaultParams = Params{Time: 1, Memory: 2 << 20, Threads: 4}
 
 	// LowMemoryParams are the second recommended parameters of RFC 9106,
-	// Section 4, for memory-constrained environments: t=3, m=2^16 KiB
-	// (64 MiB), and p=4.
-	LowMemoryParams = Params{Time: 3, Memory: 1 << 16, Threads: 4}
+	// Section 4, for memory-constrained environments: t=3, m=64 MiB, and p=4.
+	LowMemoryParams = Params{Time: 3, Memory: 64 << 10, Threads: 4}
 )
 
 // Upper bounds of [Params], which limit the resources a stream can demand
 // of a decrypting process.
 const (
 	MaxTime   = 16
-	MaxMemory = 1 << 22 // 4 GiB, twice that of DefaultParams
+	MaxMemory = 4 << 20 // 4 GiB, twice that of DefaultParams
 )
 
 // validate returns an error wrapping [ErrParams] unless p is within the
