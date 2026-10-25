@@ -100,12 +100,12 @@ See the [package documentation](https://pkg.go.dev/github.com/soroushj/crypt).
 RFC 9106 recommends two parameter sets for Argon2id, both with a 128-bit
 salt and a 256-bit tag:
 
-| Preset              | Flag | t | m      | p | Key derivation\* |
-| ------------------- | ---- | - | ------ | - | ---------------- |
-| `DefaultParams`     |      | 1 | 2 GiB  | 4 | 0.72 s           |
-| `LowMemoryParams`   | `-l` | 3 | 64 MiB | 4 | 0.04 s           |
+| Preset            | Flag | t | m      | p | Apple M2\* | Intel Core i9-13900\* |
+| ----------------- | ---- | - | ------ | - | ---------- | --------------------- |
+| `DefaultParams`   |      | 1 | 2 GiB  | 4 | 530 ms     | 700 ms                |
+| `LowMemoryParams` | `-l` | 3 | 64 MiB | 4 | 38 ms      | 36 ms                 |
 
-\* Intel Core i9-13900.
+\* Key derivation time, median of 5 runs of `BenchmarkKeyDerivation`.
 
 The parameters are stored in each file, so decrypting a file needs as much
 memory as encrypting it did. Use `-l` for files that may be decrypted on
