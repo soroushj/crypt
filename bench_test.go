@@ -16,9 +16,9 @@ func BenchmarkKeyDerivation(b *testing.B) {
 	} {
 		b.Run(bc.name, func(b *testing.B) {
 			var salt [saltSize]byte
-			header := newHeader(bc.params, salt).marshal()
+			rawHeader := newHeader(bc.params, salt).marshal()
 			for b.Loop() {
-				if _, err := newAEAD([]byte("password"), bc.params, salt[:], header); err != nil {
+				if _, err := newAEAD([]byte("password"), bc.params, salt[:], rawHeader); err != nil {
 					b.Fatal(err)
 				}
 			}

@@ -47,12 +47,12 @@ func NewWriter(w io.Writer, password []byte, params Params) (*Writer, error) {
 	}
 	var salt [saltSize]byte
 	rand.Read(salt[:]) // never fails
-	raw := newHeader(params, salt).marshal()
-	aead, err := newAEAD(password, params, salt[:], raw)
+	rawHeader := newHeader(params, salt).marshal()
+	aead, err := newAEAD(password, params, salt[:], rawHeader)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := w.Write(raw); err != nil {
+	if _, err := w.Write(rawHeader); err != nil {
 		return nil, err
 	}
 	return newWriter(w, aead, chunkSize), nil
@@ -65,26 +65,26 @@ func NewWriter(w io.Writer, password []byte, params Params) (*Writer, error) {
 // [MaxMemory] KiB, and calls [debug.FreeOSMemory] to release it. Callers may
 // clear password once NewReader returns.
 func NewReader(r io.Reader, password []byte) (*Reader, error) {
-	raw := make([]byte, headerSize)
-	if _, err := io.ReadFull(r, raw); err == io.EOF || err == io.ErrUnexpectedEOF {
+	rawHeader := make([]byte, headerSize)
+	if _, err := io.ReadFull(r, rawHeader); err == io.EOF || err == io.ErrUnexpectedEOF {
 		return nil, ErrFormat
 	} else if err != nil {
 		return nil, err
 	}
-	h, err := parseHeader(raw)
+	h, err := parseHeader(rawHeader)
 	if err != nil {
 		return nil, err
 	}
-	aead, err := newAEAD(password, h.Params, h.Salt[:], raw)
+	aead, err := newAEAD(password, h.Params, h.Salt[:], rawHeader)
 	if err != nil {
 		return nil, err
 	}
 	return newReader(r, aead, chunkSize), nil
 }
 
-// newAEAD derives the key of a stream with the given raw header, and returns
+// newAEAD derives the key of a stream with the given rawHeader, and returns
 // an AES-256-GCM AEAD with that key.
-func newAEAD(password []byte, params Params, salt, header []byte) (cipher.AEAD, error) {
+func newAEAD(password []byte, params Params, salt, rawHeader []byte) (cipher.AEAD, error) {
 	tag := argon2.IDKey(password, salt, params.Time, params.Memory, params.Threads, keySize)
 	// Argon2's memory is garbage now, but the GC sized its next cycle after
 	// it, so it would stay resident for as long as the stream is processed.
@@ -92,7 +92,7 @@ func newAEAD(password []byte, params Params, salt, header []byte) (cipher.AEAD, 
 	// otherwise out of reach.
 	debug.FreeOSMemory()
 	defer clear(tag)
-	key, err := hkdf.Expand(sha256.New, tag, string(header), keySize)
+	key, err := hkdf.Expand(sha256.New, tag, string(rawHeader), keySize)
 	if err != nil {
 		return nil, err
 	}
