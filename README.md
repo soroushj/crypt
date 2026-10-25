@@ -16,8 +16,10 @@ Go package that follow published recommendations closely:
 - The whole header is bound to the key with **HKDF**, as described in
   [RFC 5869](https://www.rfc-editor.org/rfc/rfc5869.html#section-3.3).
 
-The only dependencies are the Go standard library, plus `golang.org/x/crypto`
-for Argon2 and `golang.org/x/term` for reading passwords.
+`crypt` depends only on the Go standard library and the Go project's
+`golang.org/x` modules, with no third-party dependencies. The package uses
+`golang.org/x/crypto` for Argon2, and the command also uses `golang.org/x/term`
+and `golang.org/x/sys`.
 
 ## Install
 

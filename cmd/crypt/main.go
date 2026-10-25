@@ -77,6 +77,12 @@ func main() {
 		fmt.Println("crypt", version())
 		return
 	}
+	// Before handling any secrets, make sure they cannot end up in a core
+	// dump. Fail rather than run without this protection.
+	if err := disableCoreDumps(); err != nil {
+		fmt.Fprintln(os.Stderr, "crypt:", err)
+		os.Exit(1)
+	}
 	go handleSignals()
 	if err := run(opts, os.Stdin, os.Stdout, readPassword); err != nil {
 		fmt.Fprintln(os.Stderr, "crypt:", err)
