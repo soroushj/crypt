@@ -44,12 +44,12 @@
 //	    15    16  salt (random)
 //
 // The salt and the password are passed to Argon2id with the parameters in the
-// header, producing a 32-byte tag (Argon2's output, not to be confused with
-// GCM's). Since the tag is uniformly random, it is used as the pseudorandom
-// key of HKDF-Expand with SHA-256, skipping the extract step as permitted by
-// [RFC 5869], Section 3.3. The info parameter is the entire header, which
-// binds every header field to the 32-byte AES key: changing any of them
-// results in a different key, and thus an authentication failure.
+// header, producing a 32-byte key. Since this key is uniformly random, it is
+// used as the pseudorandom key of HKDF-Expand with SHA-256, skipping the
+// extract step as permitted by [RFC 5869], Section 3.3. The info parameter is
+// the entire header, which binds every header field to the resulting 32-byte
+// AES key: changing any of them results in a different key, and thus an
+// authentication failure.
 //
 // The payload is a sequence of chunks. Each chunk is 64 KiB of plaintext
 // encrypted with AES-256-GCM and followed by its 16-byte GCM tag, except the

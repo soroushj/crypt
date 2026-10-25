@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-// keySize is the size of both the Argon2 tag and the AES key: 256 bits, as
+// keySize is the size of both the Argon2 output and the AES key: 256 bits, as
 // recommended by RFC 9106, Section 4.
 const keySize = 32
 
@@ -85,14 +85,14 @@ func NewReader(r io.Reader, password []byte) (*Reader, error) {
 // newAEAD derives the key of a stream with the given rawHeader, and returns
 // an AES-256-GCM AEAD with that key.
 func newAEAD(password []byte, params Params, salt, rawHeader []byte) (cipher.AEAD, error) {
-	tag := argon2.IDKey(password, salt, params.Time, params.Memory, params.Threads, keySize)
+	argonKey := argon2.IDKey(password, salt, params.Time, params.Memory, params.Threads, keySize)
 	// Argon2's memory is garbage now, but the GC sized its next cycle after
 	// it, so it would stay resident for as long as the stream is processed.
 	// Release it now. On Linux, this also wipes the Argon2 state, which is
 	// otherwise out of reach.
 	debug.FreeOSMemory()
-	defer clear(tag)
-	key, err := hkdf.Expand(sha256.New, tag, string(rawHeader), keySize)
+	defer clear(argonKey)
+	key, err := hkdf.Expand(sha256.New, argonKey, string(rawHeader), keySize)
 	if err != nil {
 		return nil, err
 	}
