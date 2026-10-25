@@ -95,6 +95,10 @@ See the [package documentation](https://pkg.go.dev/github.com/soroushj/crypt).
 
 ## Design
 
+For a step-by-step explanation of how `crypt` works, and why, written for
+software engineers rather than cryptographers, see
+[How crypt works](HOW-IT-WORKS.md).
+
 ### Parameters
 
 RFC 9106 recommends two parameter sets for Argon2id, both with a 128-bit
