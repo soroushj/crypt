@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-const chunkSize = 64 << 10
+const chunkSize = 64 << 10 // 64 KiB
 
 var errClosed = errors.New("write to closed Writer")
 
