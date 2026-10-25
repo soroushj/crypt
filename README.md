@@ -70,6 +70,7 @@ signal.
 ## Package
 
 ```go
+// Encrypt: plaintext written to w is encrypted and written to dst.
 w, err := crypt.NewWriter(dst, password, crypt.DefaultParams)
 if err != nil {
 	return err
@@ -77,10 +78,11 @@ if err != nil {
 if _, err := io.Copy(w, src); err != nil {
 	return err
 }
-return w.Close()
+return w.Close() // writes the last chunk
 ```
 
 ```go
+// Decrypt: ciphertext is read from src, and plaintext is read from r.
 r, err := crypt.NewReader(src, password)
 if err != nil {
 	return err
