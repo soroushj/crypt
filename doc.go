@@ -1,11 +1,13 @@
 // Package crypt implements password-based authenticated encryption of
 // arbitrarily large streams.
 //
-// The password is stretched into a key with Argon2id, as recommended by
-// [RFC 9106], and the data is encrypted with AES-256-GCM in fixed-size chunks
-// using the STREAM construction of [HRRV15]. Encryption and decryption work
-// online, in constant memory, and every chunk is authenticated before it is
-// released. Reordering, truncation, and extension of the stream are detected.
+// A key is derived from the password with Argon2id, as recommended by
+// [RFC 9106], and bound to the header with HKDF ([RFC 5869]). The data is
+// encrypted with AES-256-GCM in fixed-size chunks using the STREAM
+// construction of [HRRV15]. Encryption and decryption work online (i.e., in a
+// single pass, as the data arrives) and in constant memory, and every chunk is
+// authenticated before it is released. Reordering, truncation, and extension
+// of the stream are detected.
 //
 // [NewWriter] encrypts and [NewReader] decrypts:
 //
