@@ -21,11 +21,14 @@
 // # Parameters
 //
 // [DefaultParams] and [LowMemoryParams] are the two recommendations of
-// RFC 9106, Section 4. The parameters are stored in the header, so decryption
-// needs as much memory as encryption did: 2 GiB for DefaultParams, and 64 MiB
-// for LowMemoryParams. The memory used for key derivation is returned to the
-// operating system before any data is processed, so the peak memory usage of
-// encryption and decryption is that of key derivation, plus a chunk.
+// RFC 9106, Section 4. Decryption must derive the same key with the same
+// parameters, so it needs as much memory as encryption did: 2 GiB for
+// DefaultParams, and 64 MiB for LowMemoryParams. The parameters are stored in
+// the header, so this is decided when the stream is encrypted, and
+// [NewReader] needs no parameters. The memory used for key derivation is
+// returned to the operating system before any data is processed, so the peak
+// memory usage of encryption and decryption is that of key derivation, plus a
+// chunk.
 //
 // # Format
 //

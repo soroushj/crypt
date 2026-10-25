@@ -107,9 +107,10 @@ salt and a 256-bit tag:
 
 \* Key derivation time, median of 5 runs of `BenchmarkKeyDerivation`.
 
-The parameters are stored in each file, so decrypting a file needs as much
-memory as encrypting it did. Use `-l` for files that may be decrypted on
-machines with less than 2 GiB of free memory.
+Decryption must derive the same key with the same parameters, so it needs as
+much memory as encryption did. The parameters are stored in each file, so this
+is decided when the file is encrypted: use `-l` for files that may be
+decrypted on machines with less than 2 GiB of free memory.
 
 Argon2 allocates all of its memory at once, and the Go garbage collector would
 then keep that much memory resident for the rest of the run. So `crypt`
