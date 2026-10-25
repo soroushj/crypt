@@ -42,8 +42,16 @@ type Writer struct {
 	aead      cipher.AEAD
 	nonce     nonce
 	chunkSize int
-	buf       []byte // plaintext of the pending chunk, with room for its tag
-	err       error  // sticky
+
+	// buf holds the plaintext of the pending chunk, which grows from empty to
+	// chunkSize bytes. The last chunk is sealed with a different nonce, and
+	// may be full too, so a full chunk is sealed only once more data shows
+	// that it is not the last one. The capacity of buf has room for the tag,
+	// so chunks are sealed in place, and buf is the only buffer allocated for
+	// the whole stream.
+	buf []byte
+
+	err error // sticky; errClosed after Close
 }
 
 var _ io.WriteCloser = (*Writer)(nil)
@@ -66,7 +74,7 @@ func (w *Writer) Write(p []byte) (n int, err error) {
 		return 0, w.err
 	}
 	for len(p) > 0 {
-		if len(w.buf) == w.chunkSize {
+		if len(w.buf) == w.chunkSize { // and more data follows, so not the last
 			if err := w.seal(false); err != nil {
 				return n, err
 			}
@@ -100,6 +108,9 @@ func (w *Writer) seal(last bool) error {
 	if last {
 		w.nonce.setLast()
 	}
+	// Seal appends to its first argument. Passing buf[:0], which shares
+	// buf's memory, makes it overwrite the plaintext with the ciphertext,
+	// and append the tag in the spare capacity, without allocating.
 	chunk := w.aead.Seal(w.buf[:0], w.nonce[:], w.buf, nil)
 	w.nonce.next()
 	if _, err := w.w.Write(chunk); err != nil {
@@ -116,10 +127,24 @@ type Reader struct {
 	aead      cipher.AEAD
 	nonce     nonce
 	chunkSize int
-	buf       []byte // ciphertext of a full chunk, plus one byte of lookahead
-	ahead     bool   // whether the lookahead byte is at the end of buf
-	plain     []byte // unread plaintext, which aliases buf
-	err       error  // sticky; io.EOF after the last chunk
+
+	// buf holds the ciphertext of a full chunk, plus one byte of lookahead.
+	// The last chunk must be opened with a different nonce, and it is the
+	// chunk that no data follows, so reading one byte past a full chunk
+	// tells whether it is the last one. Chunks are opened in place, so buf
+	// is the only buffer allocated for the whole stream.
+	buf []byte
+
+	// ahead reports whether the last byte of buf holds a lookahead byte,
+	// which is the first byte of the next chunk.
+	ahead bool
+
+	// plain is the plaintext that Read has yet to return. It aliases buf, so
+	// it needs no memory of its own, but reading the next chunk into buf
+	// would overwrite it, so that must wait until plain is empty.
+	plain []byte
+
+	err error // sticky; io.EOF after the last chunk
 }
 
 var _ io.Reader = (*Reader)(nil)
@@ -156,11 +181,11 @@ func (r *Reader) open() ([]byte, error) {
 	full := len(r.buf) - 1
 	start := 0
 	if r.ahead {
-		r.buf[0] = r.buf[full]
+		r.buf[0] = r.buf[full] // move the next chunk's first byte to the front
 		start = 1
 	}
 	n, err := io.ReadFull(r.r, r.buf[start:])
-	n += start
+	n += start // include the byte moved to the front
 	last := false
 	switch {
 	case err == io.EOF || err == io.ErrUnexpectedEOF:
@@ -176,6 +201,8 @@ func (r *Reader) open() ([]byte, error) {
 	if last {
 		r.nonce.setLast()
 	}
+	// As with Seal, passing chunk[:0] makes Open decrypt in place. The
+	// plaintext is shorter than a full chunk, so the lookahead byte survives.
 	plain, err := r.aead.Open(chunk[:0], r.nonce[:], chunk, nil)
 	if err != nil {
 		return nil, ErrAuthentication
