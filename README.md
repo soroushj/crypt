@@ -134,8 +134,7 @@ the header yields a different key.
 The data is split into 64 KiB chunks, and each chunk is encrypted with
 AES-256-GCM. A chunk's nonce is its index followed by a flag marking the
 last chunk. Every file has a random salt, and thus its own key, so counter
-nonces never repeat under the same key. This also means that the limits that
-apply to random GCM nonces don't apply here. The last-chunk flag is what
+nonces never repeat under the same key. The last-chunk flag is what
 detects truncation at a chunk boundary.
 
 Each chunk adds a 16-byte tag, which is 0.02% overhead. Larger chunks would
