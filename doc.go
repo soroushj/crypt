@@ -35,6 +35,9 @@
 //
 // # Format
 //
+// This is version 1 of the format, and it is stable: future versions of this
+// package will always decrypt version 1 streams.
+//
 // An encrypted stream is a 31-byte header followed by a payload. Integers are
 // big-endian.
 //

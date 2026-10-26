@@ -146,6 +146,9 @@ authenticated.
 
 ### File format
 
+This is version 1 of the format, and it is stable: future versions of `crypt`
+will always decrypt version 1 files.
+
 All integers are big-endian.
 
 | Offset | Size | Field |
