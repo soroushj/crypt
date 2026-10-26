@@ -32,7 +32,7 @@ Or download a binary for Linux or macOS from the
 come with build provenance attestations, which you can verify with:
 
 ```sh
-gh attestation verify crypt_1.0.0_linux_amd64.tar.gz --repo soroushj/crypt
+gh attestation verify crypt_0.1.0_linux_amd64.tar.gz --repo soroushj/crypt
 ```
 
 ## Usage
