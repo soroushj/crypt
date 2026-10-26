@@ -104,7 +104,7 @@ software engineers rather than cryptographers, see
 ### Parameters
 
 RFC 9106 recommends two parameter sets for Argon2id, both with a 128-bit
-salt and a 256-bit tag:
+salt and a 256-bit key:
 
 | Preset            | Flag | t | m      | p | Apple M2\* | Intel Core i9-13900\* |
 | ----------------- | ---- | - | ------ | - | ---------- | --------------------- |
