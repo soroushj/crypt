@@ -38,6 +38,9 @@
 // crypt receives SIGHUP, SIGINT, or SIGTERM, it removes its temporary file,
 // restores the terminal, and terminates by the same signal.
 //
+// Crypt disables core dumps of itself, so that the password, the key, and
+// decrypted data in its memory cannot end up on disk if it crashes.
+//
 // See [github.com/soroushj/crypt] for the cryptographic design and the file
 // format.
 package main

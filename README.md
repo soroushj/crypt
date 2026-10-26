@@ -183,6 +183,9 @@ To let `file(1)` recognize encrypted files, add this to `~/.magic` or
 - Encryption hides the content of a file, not its approximate size.
 - Key material is cleared from memory where possible, but Go gives no
   guarantee about copies made by the runtime.
+- The `crypt` command disables core dumps of itself, so that the password,
+  the key, and decrypted data in its memory cannot end up on disk if it
+  crashes.
 
 ## Development
 
